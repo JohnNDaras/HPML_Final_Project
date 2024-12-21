@@ -5,10 +5,7 @@ import sys
 import time
 import shapely
 import pandas as pd
-
-
 from collections import defaultdict
-#from sklearn.linear_model import LogisticRegression
 import os
 import random
 from tqdm import tqdm
@@ -18,15 +15,19 @@ from sortedcontainers import SortedList
 from sklearn.neighbors import KernelDensity
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import LeaveOneOut
+
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.regularizers import l2
 from tensorflow.keras.callbacks import EarlyStopping
+
 from shapely import get_num_coordinates
-#from utilities import CsvReader
-#from datamodel import RelatedGeometries
+from utilities import CsvReader
+from datamodel import RelatedGeometries
+from shape_similarity import ShapeSimilarity
+
 
 class Dynamic_Similarity_Algorithm:
 
