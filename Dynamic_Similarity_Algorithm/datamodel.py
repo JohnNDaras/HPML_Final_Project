@@ -3,13 +3,13 @@ from shapely import Point, LineString, Polygon, MultiPoint, MultiLineString, Mul
 from shapely import get_num_coordinates
 
 class RelatedGeometries:
-    def __init__(self, qualifyingClusters, average_similarity):
+    def __init__(self, qualifyingClusters, similarity_threshold):
         self.pgr = 0
         self.exceptions = 0
         self.detectedLinks = 0
         self.verifiedClusters = 0
         self.qualifyingClusters = qualifyingClusters
-        self.average_similarity = average_similarity
+        self.similarity_threshold = similarity_threshold
         self.interlinkedGeometries = 0
         self.continuous_unrelated_Clusters = 0
         self.violations = 0
@@ -120,7 +120,7 @@ class RelatedGeometries:
         related = False
         self.verifiedClusters += 1
 
-        if similarity > self.average_similarity :
+        if similarity > self.similarity_threshold :
             related = True
             self.interlinkedGeometries += 1
             self.pgr += self.interlinkedGeometries
