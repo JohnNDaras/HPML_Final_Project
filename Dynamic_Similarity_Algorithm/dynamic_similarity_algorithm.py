@@ -31,7 +31,7 @@ from shape_similarity import ShapeSimilarity
 
 class Dynamic_Similarity_Algorithm:
 
-    def __init__(self, budget: int, qClusters: int, avSimilarity: float, delimiter: str, sourceFilePath: str, targetFilePath: str, testFilePath: str, target_recall: float, similarity_index_range: float):
+    def __init__(self, budget: int, delimiter: str, sourceFilePath: str, targetFilePath: str, testFilePath: str, target_recall: float, similarity_index_range: float):
         self.CLASS_SIZE = 500
         self.NO_OF_FEATURES = 16
         self.SAMPLE_SIZE = 50000
@@ -42,7 +42,8 @@ class Dynamic_Similarity_Algorithm:
         self.recall_aprox = 0
         self.trainingPhase = False
         self.thetaX, self.thetaY = 0, 0
-
+        self.kde_sample = set()
+        self.predicted_probabilities = []
 
         # Load and process datasets using multiprocessing
         with multiprocessing.Pool(processes=2) as pool:
@@ -50,23 +51,26 @@ class Dynamic_Similarity_Algorithm:
                 (delimiter, sourceFilePath),
                 (delimiter, targetFilePath)
             ])
-        
+
         # Store processed source and target data
         self.sourceData, self.targetData = results
 
         print('Source geometries:', len(self.sourceData))
         print('Target geometries:', len(self.targetData))
-
+        
         # Load cluster data into a deque
         self.cluster_data = CsvReader.loadClusterDataToDeque(testFilePath)
-        print('Cluster data:', len(self.cluster_data))
-
         # Convert deque to dictionary for faster lookups
         self.cluster_data = {cluster_id: similarity_index for cluster_id, similarity_index in self.cluster_data}
+        values_as_list = list(self.cluster_data.values())
+        values_as_list.sort(reverse=True)
+        qualifying_clusters = math.floor(len(values_as_list)*0.1)
+        similarity_threshold = values_as_list[math.floor(len(values_as_list)*0.1)]
+        print('Cluster data:', len(self.cluster_data))
+        print("Original similarity threshold is ", similarity_threshold)
+        print("Qualifying Clusters are ", qualifying_clusters)
 
-        self.kde_sample = set()
-        self.predicted_probabilities = []
-        self.relations = RelatedGeometries(qClusters, avSimilarity)
+        self.relations = RelatedGeometries(qualifying_clusters, similarity_threshold)
         self.similarity_calculator = ShapeSimilarity()
         self.sample = set()
         self.spatialIndex = defaultdict(lambda: defaultdict(list))
@@ -367,7 +371,7 @@ class Dynamic_Similarity_Algorithm:
         for latIndex in range(minX, maxX+1):
           for longIndex in range(minY,maxY+1):
               for sourceId in self.spatialIndex[latIndex][longIndex]:
-                  if (self.flag[sourceId] != targetId): 
+                  if (self.flag[sourceId] != targetId):
                       self.flag[sourceId] = targetId
                       self.frequency[sourceId] = 0
                   self.frequency[sourceId] += 1
@@ -426,7 +430,7 @@ class Dynamic_Similarity_Algorithm:
       test_lengths = []
       X, y = [], []
       sorted_list = SortedList()
-      average_similarities = []
+      similarities = []
       excessVerifications = 0
       test_positives = 0
       epsilon = - self.similarity_index_range/4
@@ -442,13 +446,13 @@ class Dynamic_Similarity_Algorithm:
 
           # Map candidateMatches indexes to their corresponding polygons
           candidatePolygons = [self.sourceData[idx] for idx in candidateMatches]
-          average_similarity = self.similarity_calculator.calculate_similarity_all_pairs(candidatePolygons)
-          average_similarities.append(average_similarity/100)
+          similarity = self.similarity_calculator.calculate_similarity_all_pairs(candidatePolygons)
+          similarities.append(similarity/100)
 
       #Find similarity threshold
-      df_average_similarities = pd.DataFrame({'0': average_similarities})
-      df_average_similarities = df_average_similarities['0']
-      kde_model2 = self.get_best_model(df_average_similarities)
+      df_similarities = pd.DataFrame({'0': similarities})
+      df_similarities = df_similarities['0']
+      kde_model2 = self.get_best_model(df_similarities)
       self.find_estimate_threshold(kde_model2)
       print("Threshold", self.similarity_index_threshold)
 
@@ -462,9 +466,9 @@ class Dynamic_Similarity_Algorithm:
 
           # Map candidateMatches indexes to their corresponding polygons
           candidatePolygons = [self.sourceData[idx] for idx in candidateMatches]
-          average_similarity = self.similarity_calculator.calculate_similarity_all_pairs(candidatePolygons)
+          similarity = self.similarity_calculator.calculate_similarity_all_pairs(candidatePolygons)
 
-          if average_similarity >= self.similarity_index_threshold*100:
+          if similarity >= self.similarity_index_threshold*100:
                   if y.count(1) < self.CLASS_SIZE:
                       y.append(1)
                       lengths.append(len(candidateMatches))
@@ -511,18 +515,18 @@ class Dynamic_Similarity_Algorithm:
       Instances = self.get_feature_vector(TestSourceIds, TestTargetIds, test_lengths)
       predictions = self.classifier.predict(Instances)
 
-      for pred, idx in tqdm(zip(predictions, average_similarities), desc="Calculating Recall", unit="prediction"):
+      for pred, idx in tqdm(zip(predictions, similarities), desc="Calculating Recall", unit="prediction"):
           weight = float(pred[0])
           sorted_list.add((weight, idx))
 
       # Reverse and convert to a list
       reversed_list = list(reversed(sorted_list))
-      
+
       #Find how many similarities predicted to be above similarity threshold in a range = similarity_range * len(reversed_list)
       test_positives = sum(1 for _, idx in reversed_list[:int(len(reversed_list) * (self.similarity_index_range + epsilon))] if idx >= self.similarity_index_threshold)
-      
+
       #Find how many similarities are actually above similarity threshold in a range = similarity_range * len(reversed_list)
-      count_above_similarity_threshold = len([x for x in average_similarities if x >= self.similarity_index_threshold])
+      count_above_similarity_threshold = len([x for x in similarities if x >= self.similarity_index_threshold])
       print("count_above_similarity_threshold = ", count_above_similarity_threshold)
 
       self.detectedQP = count_above_similarity_threshold
@@ -547,7 +551,7 @@ class Dynamic_Similarity_Algorithm:
         # Extract geometries based on source and target IDs
         sourceGeometries = np.array([self.sourceData[sourceId] for sourceId in sourceIds])
         targetGeometries = np.array([self.targetData[targetId] for targetId in targetIds])
-        
+
         '''
          Calculate geometries' envelopes, bounds, intersection areas, etc. utilizing vectorizing operations of Shapely 2.0
          for each pair of souce and target ID .
@@ -659,7 +663,7 @@ class Dynamic_Similarity_Algorithm:
         for targetId in range(len(self.targetData)):
           # Retrieve clusters for the current target
           candidateMatches = self.getCandidates(targetId)
-          
+
           # Only consider targets with multiple candidate matches
           if len(candidateMatches) > 1:
             lengths.append(len(candidateMatches))
@@ -689,15 +693,8 @@ class Dynamic_Similarity_Algorithm:
         maxsize = (self.target_recall+1) * ((1/self.recall_aprox)* (self.detectedQP / self.N)) * self.totalCandidateClusters
         #maxsize = 0.4 * self.totalCandidateClusters
 
-        print("Target Recall =", self.target_recall)
-        print("1/self.recall_aprox = ", 1/self.recall_aprox)
-        print("DetectedQP =", self.detectedQP)
-        print("N = ", self.N)
-        print("Total Candidate Clusters", self.totalCandidateClusters)
         print("Maxsize = ", maxsize)
-
-        start = 0
-        start_index = 0
+        print("The ",maxsize/self.totalCandidateClusters, "% of the dataset is verified")
 
         # Process predictions and add them to the sorted list
         for pred, idx in tqdm(zip(predictions,list(self.cluster_data.keys())), desc="Calculating Recall", unit="prediction"):
