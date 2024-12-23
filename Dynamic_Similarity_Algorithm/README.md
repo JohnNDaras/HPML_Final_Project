@@ -1,4 +1,4 @@
-# Dynamic Similarity Algorithm
+# Efficient Identification of High-Similarity Clusters in Polygon Datasets
 
 ## Overview
 The `Dynamic_Similarity_Algorithm` is an advanced algorithm designed to efficiently compute similarity metrics between geometries across large datasets. The algorithm leverages a combination of geometric data processing, grid-based spatial indexing, and machine learning techniques (including KDE and neural networks) to identify clusters and evaluate their similarity while optimizing for performance and recall accuracy.
