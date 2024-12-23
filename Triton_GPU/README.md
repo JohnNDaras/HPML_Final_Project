@@ -180,6 +180,13 @@ The following properties are precomputed for efficiency:
 - **Fourier Descriptors**: Fourier coefficients for polygon shapes.
 - **Intersection Areas and Union Areas**: For pairwise comparisons within clusters.
 
+### Achievements with These Optimizations
+The implemented optimizations achieve the following:
+1. **Efficient Memory Usage**: By sorting and remapping the dictionary keys to consecutive integers, memory overhead is minimized, enabling smoother execution on GPUs.
+2. **Consistency Across Properties**: Updating keys across all geometric properties ensures data alignment, reducing computational complexity and potential errors.
+3. **Scalability**: These strategies allow handling large datasets and numerous clusters without exceeding memory limits, making the solution scalable for real-world applications.
+4. **GPU Compatibility**: Precomputing and organizing properties like areas, perimeters, and Fourier descriptors streamline GPU processing, leveraging its parallel computation capabilities effectively.
+
 ## Performance Optimization
 - **Batching**: The kernel processes data in blocks (specified by `BLOCK_SIZE`) for efficient parallelism.
 - **Vectorized Operations**: Similarity metrics are computed using Triton's vectorized operations.
@@ -194,6 +201,4 @@ Contributions are welcome! Please open an issue or submit a pull request for bug
 ## License
 This project is licensed under the MIT License. See the LICENSE file for details.
 
-## Contact
-For questions or support, contact the project maintainer at [maintainer_email@example.com].
 
