@@ -1,7 +1,7 @@
 # README
 
 ## Overview
-This project is designed to extract and process geospatial datasets for use in a larger experimental framework. These datasets are sourced from well-known repositories such as the US Census Bureau's TIGER/Line Shapefiles and OpenStreetMap (OSM). The main objective is to transform raw geospatial data into polygonal geometries for further analysis.
+This directory is designed to extract and process geospatial datasets for use in a larger experimental framework. These datasets are sourced from well-known repositories such as the US Census Bureau's TIGER/Line Shapefiles and OpenStreetMap (OSM). The main objective is to transform raw geospatial data into polygonal geometries for further analysis.
 
 ## Datasets
 The datasets utilized in this project are:
