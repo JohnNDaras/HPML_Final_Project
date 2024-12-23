@@ -162,6 +162,3 @@ algorithm.applyProcessing()
 
 ---
 
-## Authors and Acknowledgments
-- Developed by [Your Name].
-- Contributions and utility functions from the `shapely`, `pandas`, and `tensorflow` ecosystems.
