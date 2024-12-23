@@ -48,7 +48,7 @@ Refer to the [Triton_GPU README](./Triton_GPU/README.md) for more details.
 ## Usage
 Navigate to the individual directories for detailed instructions and code examples:
 
-- [Datasets](./Datasets/README.md)
+- [Datasets](./Datasets)
 - [Dynamic_Similarity_Algorithm](./Dynamic_Similarity_Algorithm/README.md)
 - [Triton_GPU](./Triton_GPU/README.md)
 
