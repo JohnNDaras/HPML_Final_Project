@@ -148,13 +148,6 @@ algorithm.applyProcessing()
 
 ---
 
-## Performance Optimization
-- **Parallel Processing:** Utilizes multiprocessing for data loading.
-- **Grid Indexing:** Reduces computational complexity by spatial indexing.
-- **Dynamic Budgeting:** Adapts the number of verified clusters to the similarity range and recall targets.
-- **Sorted Containers:** The algorithm uses `SortedList` from the `sortedcontainers` library to efficiently sort cluster predictions by probability. This ensures that only the top clusters, within a defined `maxsize`, are verified. By limiting verification to a portion of the dataset, the algorithm achieves computational efficiency while maintaining a recall close to the desired target.
-
-
 ## Data Model: `datamodel.py`
 ### `RelatedGeometries`
 The `RelatedGeometries` class in `datamodel.py` is responsible for managing and evaluating relationships between geometric clusters based on similarity thresholds.
