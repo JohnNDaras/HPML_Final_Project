@@ -18,6 +18,8 @@ This project implements a GPU-accelerated kernel using the Triton framework to c
 - Python 3.8+
 - PyTorch
 - Triton
+- Shapely
+- NumPy
 
 ## Installation
 1. Clone the repository:
@@ -27,7 +29,7 @@ This project implements a GPU-accelerated kernel using the Triton framework to c
    ```
 2. Install the required Python packages:
    ```bash
-   pip install torch triton
+   pip install torch triton shapely numpy
    ```
 
 ## Usage
@@ -64,46 +66,119 @@ Offsets are used to access specific elements within these arrays:
 - `BLOCK_SIZE`: Determines the number of combinations processed by each block.
 - `TENSOR_SIZE`: Specifies the number of elements in each Fourier descriptor.
 
-### Helper Function: `compute_with_seventh_dir`
-Manages preprocessing, kernel execution, and postprocessing.
+### Class: `ShapeSimilarity`
+This class provides tools for processing geometric shapes (polygons) and calculating similarities between clusters of shapes using precomputed properties.
 
-#### Preprocessing
-- **Combination Generation**: Generates all pairwise combinations of object keys in the provided sublists. These combinations are flattened and stored in `all_combinations_flat`.
-- **Intersection and Union Areas**: Flattens the provided intersection and union area data.
+#### Logic Overview
+The `ShapeSimilarity` class stores all polygons in a dictionary where each polygon is uniquely identified by a key. The keys are the polygon indices. To organize polygons into groups, a list of sublists is used, where each sublist represents a cluster and contains the indices of polygons belonging to that cluster.
 
-#### Kernel Execution
-- **Memory Allocation**: Allocates GPU memory for input pointers and result arrays.
-- **Grid Configuration**: Configures the grid size for kernel execution based on the total number of combinations and block size.
-- **Kernel Call**: Passes the pointers, data, and configuration constants to the Triton kernel.
+To manage memory usage efficiently for Triton processing:
+- The dictionary is sorted in ascending order by its keys, and the keys are updated to be consecutive integers starting from 0.
+- The sublists are also updated to reflect the new key mappings, ensuring they point to the same polygons as before.
+- This approach is applied uniformly to all precomputed geometric properties (e.g., areas, perimeters, bounding boxes) to maintain consistency.
 
-#### Postprocessing
-- **Result Splitting**: Splits the flattened result arrays back into sublists corresponding to the original input sublists.
+#### Key Methods
 
-#### Example
+1. **`center_polygons`**
+Centers polygons in a dictionary by translating each polygon so that its centroid is at the origin.
+
 ```python
-import torch
+Parameters:
+    polygon_dict (dict): A dictionary where values are Shapely polygons.
+Returns:
+    dict: A dictionary with the same keys but with centered polygons as values.
+```
 
-# Define inputs
-keys = torch.tensor([...], device='cuda')
-areas = torch.tensor([...], device='cuda')
-perimeters = torch.tensor([...], device='cuda')
-bboxes = torch.tensor([...], device='cuda')
-fourier = torch.tensor([...], device='cuda')
-num_vertices = torch.tensor([...], device='cuda')
-key_lists = [[...], [...]]  # List of object keys
-intersection_areas_dir = [[...], [...]]
-union_areas_dir = [[...], [...]]
+2. **`sample_boundaries_vectorized`**
+Samples evenly spaced points along the exterior boundary of multiple polygons.
 
-# Call helper function
-results = compute_with_seventh_dir(
-    keys, areas, perimeters, bboxes, fourier, num_vertices,
-    key_lists, intersection_areas_dir, union_areas_dir
+```python
+Parameters:
+    polygons (array): Numpy array of Shapely polygons.
+    num_points (int): Number of points to sample per polygon.
+Returns:
+    numpy.ndarray: A (num_polygons, num_points, 2) array of sampled points.
+```
+
+3. **`torch_fourier_descriptors`**
+Computes Fourier Descriptors for a batch of contours using PyTorch.
+
+```python
+Parameters:
+    contours (Tensor): Tensor of shape (num_contours, num_points, 2).
+Returns:
+    Tensor: Fourier descriptors of shape (num_contours, num_descriptors).
+```
+
+4. **`compute_fourier_descriptors`**
+Precomputes Fourier descriptors for a set of polygons.
+
+```python
+Parameters:
+    polygons (list): List of Shapely polygons.
+    num_points (int): Number of points to sample along the boundaries.
+Returns:
+    Tensor: Fourier descriptors as a PyTorch tensor.
+```
+
+5. **`process_pairs_and_clusters_and_compute_areas`**
+Generates unique pairs for each cluster and computes intersection and union areas for those pairs.
+
+```python
+Parameters:
+    list_of_cluster_content_indices (list): List of cluster content indices.
+    cluster_indices_list (list): List of cluster indices corresponding to each cluster.
+Returns:
+    tuple: Flattened pairs, group sizes, intersection areas, and union areas.
+```
+
+6. **`calculate_similarity_for_clusters`**
+Calculates the similarity metrics for multiple clusters of polygons.
+
+```python
+Parameters:
+    polygons (list): List of Shapely polygons.
+    polygon_indices (list): Indices of polygons.
+    list_of_cluster_content_indices (list): List of cluster indices.
+    cluster_indices_list (list): List of cluster IDs.
+Returns:
+    dict: Average similarity scores for each cluster.
+```
+
+### Example
+
+```python
+from shapely.geometry import Polygon
+
+# Define example polygons
+polygons = [
+    Polygon([(0, 0), (1, 0), (1, 1), (0, 1)]),
+    Polygon([(0, 0), (2, 0), (2, 1), (0, 1)]),
+    Polygon([(0, 0), (1, 0), (0.5, 1)])
+]
+
+# Define indices and clusters
+polygon_indices = [10, 20, 30]  # Custom indices for the polygons
+list_of_cluster_content_indices = [[10, 30], [20]]  # Two clusters
+cluster_indices_list = [101, 200]
+
+# Instantiate and calculate
+shape_sim = ShapeSimilarity()
+similarity_scores = shape_sim.calculate_similarity_for_clusters(
+    polygons, polygon_indices, list_of_cluster_content_indices, cluster_indices_list
 )
 
-# Process results
-for metric_results in results:
-    print(metric_results)
+for cluster_id, similarity in similarity_scores.items():
+    print(f"Cluster {cluster_id}: {similarity:.2f}%")
 ```
+
+### Precomputed Properties
+The following properties are precomputed for efficiency:
+- **Areas**: Polygon areas.
+- **Perimeters**: Polygon perimeters.
+- **Bounding Boxes**: Bounds of polygons.
+- **Fourier Descriptors**: Fourier coefficients for polygon shapes.
+- **Intersection Areas and Union Areas**: For pairwise comparisons within clusters.
 
 ## Performance Optimization
 - **Batching**: The kernel processes data in blocks (specified by `BLOCK_SIZE`) for efficient parallelism.
@@ -118,4 +193,7 @@ Contributions are welcome! Please open an issue or submit a pull request for bug
 
 ## License
 This project is licensed under the MIT License. See the LICENSE file for details.
+
+## Contact
+For questions or support, contact the project maintainer at [maintainer_email@example.com].
 
