@@ -33,26 +33,51 @@ This project implements a GPU-accelerated kernel using the Triton framework to c
 ## Usage
 
 ### Kernel Function: `compute_combinations_kernel`
-This kernel computes the similarity metrics for all pairs of objects provided. It takes the following inputs:
-- **Pointers**: Inputs to the kernel, such as areas, perimeters, bounding boxes, Fourier descriptors, etc.
-- **Combination Pointers**: Information about pairs of objects to compare.
-- **Tensor Sizes**: Block size and tensor size for the Triton kernel.
+This kernel computes the similarity metrics for all pairs of objects provided. It uses pointers and offsets for efficient memory access on the GPU.
 
-#### Arguments
-- `keys_ptr`: Pointers to object keys.
-- `areas_ptr`: Areas of the objects.
-- `perimeters_ptr`: Perimeters of the objects.
-- `bboxes_ptr`: Bounding box data.
-- `fourier_ptr`: Fourier descriptors.
-- `num_vertices_ptr`: Number of vertices for each object.
-- `comb_keys_ptr`: Combinations of keys to compare.
-- `intersection_areas_ptr`: Intersection areas for bounding boxes.
-- `union_areas_ptr`: Union areas for bounding boxes.
-- `n_combinations`: Total number of combinations to process.
-- `BLOCK_SIZE`, `TENSOR_SIZE`: Configuration constants for the kernel.
+#### Inputs and Memory Layout
+- **Pointers**: The kernel accesses data stored in GPU memory using pointers. These pointers represent the starting addresses of data arrays in memory.
+  - `keys_ptr`: Pointer to the object keys array.
+  - `areas_ptr`: Pointer to the array storing areas of the objects.
+  - `perimeters_ptr`: Pointer to the array storing perimeters of the objects.
+  - `bboxes_ptr`: Pointer to the bounding box data array, where each bounding box is represented by 4 consecutive values.
+  - `fourier_ptr`: Pointer to the array of Fourier descriptors, with each descriptor consisting of multiple consecutive values.
+  - `num_vertices_ptr`: Pointer to the array storing the number of vertices for each object.
+  - `comb_keys_ptr`: Pointer to the array of key combinations for pairwise comparison. Each combination consists of two indices (offsets) referring to the objects being compared.
+  - `intersection_areas_ptr`: Pointer to the array storing intersection areas for bounding boxes.
+  - `union_areas_ptr`: Pointer to the array storing union areas for bounding boxes.
+
+#### Offsets
+Offsets are used to access specific elements within these arrays:
+- For combination pairs, the kernel retrieves two offsets from `comb_keys_ptr`, corresponding to the indices of the two objects being compared.
+- For bounding boxes, offsets are multiplied by 4 to access the correct group of 4 consecutive values (representing the bounding box coordinates).
+- For Fourier descriptors, offsets are multiplied by the tensor size (`TENSOR_SIZE`) to access the correct descriptor data.
+
+#### Execution Flow
+1. Compute the range of indices for the block of combinations being processed using the program ID (`pid`) and block size (`BLOCK_SIZE`).
+2. Load the offsets for the current pair of objects using `comb_keys_ptr`.
+3. Access the relevant data (areas, perimeters, bounding boxes, etc.) using these offsets.
+4. Perform the similarity computations for each pair.
+5. Store the results in the corresponding output arrays (`results1_ptr`, `results2_ptr`, etc.).
+
+#### Configuration Constants
+- `BLOCK_SIZE`: Determines the number of combinations processed by each block.
+- `TENSOR_SIZE`: Specifies the number of elements in each Fourier descriptor.
 
 ### Helper Function: `compute_with_seventh_dir`
 Manages preprocessing, kernel execution, and postprocessing.
+
+#### Preprocessing
+- **Combination Generation**: Generates all pairwise combinations of object keys in the provided sublists. These combinations are flattened and stored in `all_combinations_flat`.
+- **Intersection and Union Areas**: Flattens the provided intersection and union area data.
+
+#### Kernel Execution
+- **Memory Allocation**: Allocates GPU memory for input pointers and result arrays.
+- **Grid Configuration**: Configures the grid size for kernel execution based on the total number of combinations and block size.
+- **Kernel Call**: Passes the pointers, data, and configuration constants to the Triton kernel.
+
+#### Postprocessing
+- **Result Splitting**: Splits the flattened result arrays back into sublists corresponding to the original input sublists.
 
 #### Example
 ```python
@@ -93,5 +118,4 @@ Contributions are welcome! Please open an issue or submit a pull request for bug
 
 ## License
 This project is licensed under the MIT License. See the LICENSE file for details.
-
 
