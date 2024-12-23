@@ -159,6 +159,24 @@ Figure 4 presents six detailed graphs that explore the dynamics between the top 
    - Examines efficiency in identifying clusters, showing the impact of average cluster size on computational needs.
 
 ---
+### Results from Experiments
+
+The following table summarizes the percentage of clusters checked to achieve a desired recall of 0.9 for various datasets and similarity ranges:
+
+| **Dataset** | **Top 10% Checked (%)** | **Top 30% Checked (%)** | **Top 50% Checked (%)** |
+|-------------|--------------------------|--------------------------|--------------------------|
+| **D1**      | ~32%                    | ~45%                    | ~60%                    |
+| **D2**      | ~41%                    | ~55%                    | ~70%                    |
+| **D3**      | ~68%                    | ~85%                    | ~94%                    |
+
+#### Testing these Results
+To test these results, you can modify the `maxsize` parameter inline at line 692 in the `Dynamic_Similarity_Algorithm` implementation. For instance:
+
+- Set `maxsize = 0.32 * self.totalCandidateClusters` for D1 to find the top 10% high-similarity clusters with a recall of 0.9.
+- Adjust the multiplier for different datasets or similarity ranges as indicated in the table above.
+
+---
+
 
 ## Test Script: `test.py`
 The `test.py` script provides a usage example for the `Dynamic_Similarity_Algorithm` class. It demonstrates how to set up and execute the algorithm with configurable parameters.
