@@ -124,30 +124,6 @@ The main class encapsulates the complete workflow:
 
 ---
 
-## Usage
-```python
-from dynamic_similarity import Dynamic_Similarity_Algorithm
-
-algorithm = Dynamic_Similarity_Algorithm(
-    budget=1000,
-    delimiter=",",
-    sourceFilePath="source.csv",
-    targetFilePath="target.csv",
-    testFilePath="clusters.csv",
-    target_recall=0.9,
-    similarity_index_range=0.1
-)
-
-algorithm.applyProcessing()
-```
-
-### Key Outputs
-- **Timing Metrics:** Duration of indexing, preprocessing, training, and verification phases.
-- **Recall Approximation:** Estimated recall based on the test set.
-- **Verified Clusters:** True positives and relations between clusters.
-
----
-
 ## Data Model: `datamodel.py`
 ### `RelatedGeometries`
 The `RelatedGeometries` class in `datamodel.py` is responsible for managing and evaluating relationships between geometric clusters based on similarity thresholds.
@@ -198,21 +174,108 @@ The `RelatedGeometries` class in `datamodel.py` is responsible for managing and 
 
 ---
 
-## Usage
+## Shape Similarity: `shape_similarity.py`
+### `ShapeSimilarity`
+The `ShapeSimilarity` class in `shape_similarity.py` provides a comprehensive set of methods to compute similarity metrics for geometric shapes, leveraging both spatial and mathematical properties.
+
+#### Methods
+1. **Centering Polygons:**
+   ```python
+   center_polygons(self, polygons)
+   ```
+   Translates polygons to have their centroids at the origin.
+
+2. **Precomputing Properties:**
+   ```python
+   _precompute_properties(self, polygons)
+   ```
+   Precomputes and stores properties like area, perimeter, bounding boxes, and Fourier descriptors for efficient similarity computation.
+
+3. **Fourier Descriptor:**
+   ```python
+   _fourier_descriptor(self, polygon, num_points=128)
+   ```
+   Computes Fourier descriptors for a polygon to capture its shape characteristics.
+
+4. **Jaccard Similarity:**
+   ```python
+   jaccard_similarity(self, A, B)
+   ```
+   Computes the Jaccard similarity between two polygons based on their intersection and union areas.
+
+5. **Area Similarity:**
+   ```python
+   area_similarity(self, idx_A, idx_B)
+   ```
+   Calculates similarity based on the overlapping area between two polygons.
+
+6. **Curvature Similarity:**
+   ```python
+   curvature_similarity(self, idx_A, idx_B)
+   ```
+   Measures similarity based on the number of vertices in the polygons.
+
+7. **Fourier Descriptor Similarity:**
+   ```python
+   fourier_descriptor_similarity(self, idx_A, idx_B)
+   ```
+   Computes similarity using Fourier descriptors.
+
+8. **Aspect Ratio Similarity:**
+   ```python
+   aspect_ratio_similarity(self, bbox_A, bbox_B)
+   ```
+   Evaluates similarity based on the aspect ratios of bounding boxes.
+
+9. **Perimeter Similarity:**
+   ```python
+   perimeter_similarity(self, idx_A, idx_B)
+   ```
+   Compares the perimeters of two polygons.
+
+10. **Bounding Box Distance:**
+    ```python
+    bounding_box_distance(self, idx_A, idx_B)
+    ```
+    Calculates distance between the centers of bounding boxes.
+
+11. **Polygon Circularity Similarity:**
+    ```python
+    polygon_circularity_similarity(self, idx_A, idx_B)
+    ```
+    Computes similarity based on the circularity of polygons.
+
+12. **Combined Similarity:**
+    ```python
+    combined_similarity(self, idx_A, idx_B, ...)
+    ```
+    Aggregates multiple similarity measures into a weighted combined score.
+
+13. **Calculate Similarity for All Pairs:**
+    ```python
+    calculate_similarity_all_pairs(self, polygons_array)
+    ```
+    Computes the average combined similarity score for all unique pairs of polygons in an array.
+
+#### Usage Example
 ```python
-from datamodel import RelatedGeometries
+from shape_similarity import ShapeSimilarity
+from shapely.geometry import Polygon
 
-relations = RelatedGeometries(qualifyingClusters=100, similarity_threshold=50)
+# Create polygons
+polygon1 = Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])
+polygon2 = Polygon([(0, 0), (2, 0), (2, 2), (0, 2)])
 
-# Add clusters with similarity scores
-relations.addSimilarity(cluster="Cluster_1", similarity=45)
-relations.addSimilarity(cluster="Cluster_2", similarity=75)
+# Initialize ShapeSimilarity
+similarity_calculator = ShapeSimilarity()
 
-# Verify a cluster
-related = relations.verifyRelations(cluster="Cluster_3", similarity=60)
+# Calculate Jaccard similarity
+jaccard = similarity_calculator.jaccard_similarity(polygon1, polygon2)
+print(f"Jaccard Similarity: {jaccard}")
 
-# Print results
-relations.print()
+# Calculate combined similarity
+similarity_score = similarity_calculator.calculate_similarity_all_pairs([polygon1, polygon2])
+print(f"Combined Similarity Score: {similarity_score}")
 ```
 
 ---
@@ -231,20 +294,3 @@ relations.print()
 - Optimize verification for higher scalability in massive datasets.
 
 ---
-
-## Authors and Acknowledgments
-- Developed by [Your Name].
-- Contributions and utility functions from the `shapely`, `pandas`, and `tensorflow` ecosystems.
-
-
-
-
----
-
-## Future Work
-- Improve grid-based indexing for non-uniform distributions.
-- Extend model training to include additional features or advanced architectures.
-- Optimize verification for higher scalability in massive datasets.
-
----
-
