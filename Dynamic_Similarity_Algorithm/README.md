@@ -280,6 +280,50 @@ print(f"Combined Similarity Score: {similarity_score}")
 
 ---
 
+## Utilities: `utilities.py`
+### `CsvReader`
+The `CsvReader` class in `utilities.py` provides utility methods for reading and processing CSV files containing geometric data.
+
+#### Methods
+1. **Read All Entities:**
+   ```python
+   readAllEntities(delimiter, inputFilePath, batch_size=1000)
+   ```
+   Reads geometric data from a CSV file, processes them in batches, and converts WKT representations into Shapely geometry objects.
+   - **Args:**
+     - `delimiter` (str): Delimiter used in the CSV file.
+     - `inputFilePath` (str): Path to the CSV file.
+     - `batch_size` (int, optional): Number of rows to process in each batch. Default is 1000.
+   - **Returns:**
+     - List of Shapely geometry objects.
+
+2. **Load Cluster Data to Deque:**
+   ```python
+   loadClusterDataToDeque(inputFilePath)
+   ```
+   Loads cluster data from a CSV file into a deque for efficient appending and popping.
+   - **Assumes:** The CSV file contains two columns:
+     - `cluster_id` (int)
+     - `similarity_index` (float)
+   - **Args:**
+     - `inputFilePath` (str): Path to the CSV file.
+   - **Returns:**
+     - A deque of tuples containing cluster IDs and their similarity indices.
+
+#### Usage Example
+```python
+from utilities import CsvReader
+
+# Load geometric data from a CSV file
+geometries = CsvReader.readAllEntities(delimiter=",", inputFilePath="data.csv")
+
+# Load cluster data into a deque
+cluster_data = CsvReader.loadClusterDataToDeque(inputFilePath="clusters.csv")
+print(cluster_data)
+```
+
+---
+
 ## Performance Optimization
 - **Parallel Processing:** Utilizes multiprocessing for data loading.
 - **Grid Indexing:** Reduces computational complexity by spatial indexing.
@@ -294,3 +338,7 @@ print(f"Combined Similarity Score: {similarity_score}")
 - Optimize verification for higher scalability in massive datasets.
 
 ---
+
+## Authors and Acknowledgments
+- Developed by [Your Name].
+- Contributions and utility functions from the `shapely`, `pandas`, and `tensorflow` ecosystems.
