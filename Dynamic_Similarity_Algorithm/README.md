@@ -129,7 +129,7 @@ The main class encapsulates the complete workflow:
 ### Analogy of Checked to Targeted Clusters
 The following visualizations illustrate the relationship between the percentage of targeted clusters and the corresponding percentage of checked clusters, across datasets D1, D2, and D3:
 
-![Analogy of Checked to Targeted Clusters](attachment://image.png)
+![Screenshot from 2024-12-21 03-15-13 (1)](https://github.com/user-attachments/assets/c64b4ea8-fdda-41ac-9ea6-ddfb0d5b5063)
 
 #### Figure 4 Analysis
 Figure 4 presents six detailed graphs that explore the dynamics between the top percentage of targeted clusters and the corresponding percentage of checked clusters, or their respective ratios, across three datasets (D1, D2, and D3). The rows in the figure correspond to specific datasets, highlighting the following:
