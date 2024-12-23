@@ -154,6 +154,82 @@ algorithm.applyProcessing()
 - **Dynamic Budgeting:** Adapts the number of verified clusters to the similarity range and recall targets.
 - **Sorted Containers:** The algorithm uses `SortedList` from the `sortedcontainers` library to efficiently sort cluster predictions by probability. This ensures that only the top clusters, within a defined `maxsize`, are verified. By limiting verification to a portion of the dataset, the algorithm achieves computational efficiency while maintaining a recall close to the desired target.
 
+
+## Data Model: `datamodel.py`
+### `RelatedGeometries`
+The `RelatedGeometries` class in `datamodel.py` is responsible for managing and evaluating relationships between geometric clusters based on similarity thresholds.
+
+#### Attributes
+- **Cluster Statistics:**
+  - `qualifyingClusters`: Total clusters qualifying for evaluation.
+  - `similarity_threshold`: Threshold for determining similarity.
+  - `verifiedClusters`: Number of clusters verified.
+  - `interlinkedGeometries`: Number of geometries identified as related.
+- **Progress Tracking:**
+  - `pgr`: Progressive Geometry Recall metric.
+  - `exceptions`, `violations`: Exception and violation counts during verification.
+  - `continuous_unrelated_Clusters`: Counter for unrelated clusters.
+- **Similarity Ranges:**
+  - `similarity_0_10`, `similarity_10_20`, ..., `similarity_90_100`: Lists tracking clusters by similarity percentage ranges.
+
+#### Methods
+1. **Adding Similarities:**
+   ```python
+   addSimilarity(self, cluster, similarity)
+   ```
+   Categorizes clusters into similarity ranges based on their similarity scores.
+
+2. **Retrieving Clusters:**
+   ```python
+   getNoOfClustersInRange(self, lower_bound, upper_bound)
+   ```
+   Returns the number of clusters within a specified similarity range.
+
+3. **Resetting State:**
+   ```python
+   reset(self)
+   ```
+   Resets all attributes and clears similarity ranges.
+
+4. **Verification:**
+   ```python
+   verifyRelations(self, cluster, similarity)
+   ```
+   Verifies if a cluster passes the similarity threshold and updates statistics accordingly.
+
+5. **Output Results:**
+   ```python
+   print(self)
+   ```
+   Outputs the current state of the `RelatedGeometries` instance, including similarity distributions, recall, and precision metrics.
+
+---
+
+## Usage
+```python
+from datamodel import RelatedGeometries
+
+relations = RelatedGeometries(qualifyingClusters=100, similarity_threshold=50)
+
+# Add clusters with similarity scores
+relations.addSimilarity(cluster="Cluster_1", similarity=45)
+relations.addSimilarity(cluster="Cluster_2", similarity=75)
+
+# Verify a cluster
+related = relations.verifyRelations(cluster="Cluster_3", similarity=60)
+
+# Print results
+relations.print()
+```
+
+---
+
+## Performance Optimization
+- **Parallel Processing:** Utilizes multiprocessing for data loading.
+- **Grid Indexing:** Reduces computational complexity by spatial indexing.
+- **Dynamic Budgeting:** Adapts the number of verified clusters to the similarity range and recall targets.
+- **Sorted Containers:** The algorithm uses `SortedList` from the `sortedcontainers` library to efficiently sort cluster predictions by probability. This ensures that only the top clusters, within a defined `maxsize`, are verified. By limiting verification to a portion of the dataset, the algorithm achieves computational efficiency while maintaining a recall close to the desired target.
+
 ---
 
 ## Future Work
@@ -163,4 +239,19 @@ algorithm.applyProcessing()
 
 ---
 
+## Authors and Acknowledgments
+- Developed by [Your Name].
+- Contributions and utility functions from the `shapely`, `pandas`, and `tensorflow` ecosystems.
+
+
+
+
+---
+
+## Future Work
+- Improve grid-based indexing for non-uniform distributions.
+- Extend model training to include additional features or advanced architectures.
+- Optimize verification for higher scalability in massive datasets.
+
+---
 
