@@ -30,6 +30,7 @@ The `Dynamic_Similarity_Algorithm` is an advanced algorithm designed to efficien
 - `utilities.py`: Contains helper classes such as `CsvReader` for data loading.
 - `datamodel.py`: Defines data structures like `RelatedGeometries`.
 - `shape_similarity.py`: Implements the `ShapeSimilarity` class for similarity calculations.
+- `test.py`: Example script for running and testing the `Dynamic_Similarity_Algorithm`.
 
 ---
 
@@ -121,6 +122,48 @@ The main class encapsulates the complete workflow:
 4. **Verification:**
    - Predict cluster probabilities with the trained model.
    - Verify relationships based on similarity thresholds.
+
+---
+
+## Test Script: `test.py`
+The `test.py` script provides a usage example for the `Dynamic_Similarity_Algorithm` class. It demonstrates how to set up and execute the algorithm with configurable parameters.
+
+### Key Features
+1. **Desired Recall Configuration:**
+   - The script prompts the user to input the desired recall value. A high recall value (e.g., 0.9) is recommended for effective verification.
+
+2. **Similarity Range Testing:**
+   - Users can configure the similarity index range (e.g., 0.1, 0.3, 0.5) to analyze different ranges of similarity.
+
+3. **Disregarding Budget:**
+   - The budget is set to a very large value to ensure that all relevant clusters are processed, enabling comprehensive testing of similarity thresholds.
+
+### Code Example
+```python
+from dynamic_similarity_algorithm import Dynamic_Similarity_Algorithm
+
+main_dir = '../content/drive/MyDrive/hpml_final_project/D1/'
+
+print('Enter desired recall:')
+x = input()
+
+sg = Dynamic_Similarity_Algorithm(
+    budget=5631064,  # Large budget for comprehensive testing
+    delimiter='\t',
+    sourceFilePath=main_dir + "SourceDataset.csv",
+    targetFilePath=main_dir + "TargetDataset.csv",
+    testFilePath=main_dir + 'similarity_results.csv',
+    target_recall=float(x),
+    similarity_index_range=0.1  # Example similarity index range
+)
+
+sg.applyProcessing()
+```
+
+### Usage Notes
+- Modify the `similarity_index_range` to experiment with different thresholds (e.g., 0.1, 0.3, 0.5).
+- Ensure a high `target_recall` (e.g., 0.9) for better results in identifying clusters.
+- The script uses a very large budget to prioritize recall over computational limits.
 
 ---
 
@@ -338,7 +381,3 @@ print(cluster_data)
 - Optimize verification for higher scalability in massive datasets.
 
 ---
-
-## Authors and Acknowledgments
-- Developed by [Your Name].
-- Contributions and utility functions from the `shapely`, `pandas`, and `tensorflow` ecosystems.
