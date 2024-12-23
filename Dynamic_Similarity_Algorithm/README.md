@@ -125,6 +125,41 @@ The main class encapsulates the complete workflow:
 
 ---
 
+## Visual Analysis
+### Analogy of Checked to Targeted Clusters
+The following visualizations illustrate the relationship between the percentage of targeted clusters and the corresponding percentage of checked clusters, across datasets D1, D2, and D3:
+
+![Analogy of Checked to Targeted Clusters](attachment://image.png)
+
+#### Figure 4 Analysis
+Figure 4 presents six detailed graphs that explore the dynamics between the top percentage of targeted clusters and the corresponding percentage of checked clusters, or their respective ratios, across three datasets (D1, D2, and D3). The rows in the figure correspond to specific datasets, highlighting the following:
+
+1. **Top-Left (D1):**
+   - Examines the analogy of checked clusters to targeted clusters for Dataset D1.
+   - Shows how the percentage of checked clusters scales relative to the targeted clusters, reflecting the algorithm's efficiency in narrowing down high-similarity clusters.
+
+2. **Top-Middle (D1):**
+   - Displays the percentage of targeted clusters to checked clusters for Dataset D1.
+   - Demonstrates the effort required to identify specific top clusters as the target percentage increases.
+
+3. **Top-Right (D2):**
+   - Analyzes the analogy of checked clusters to targeted clusters for Dataset D2.
+   - Highlights similar trends as D1 but tailored to Dataset D2, emphasizing computational trade-offs required for identifying targeted clusters.
+
+4. **Bottom-Left (D2):**
+   - Visualizes the percentage of targeted clusters to checked clusters for Dataset D2.
+   - Focuses on the trade-offs and efforts to achieve targeted clusters relative to the checked clusters.
+
+5. **Bottom-Middle (D3):**
+   - Depicts the analogy of checked clusters to targeted clusters for Dataset D3.
+   - Explores how this ratio varies for larger clusters, showcasing the computational cost trends for large datasets.
+
+6. **Bottom-Right (D3):**
+   - Highlights the percentage of targeted clusters to checked clusters for Dataset D3.
+   - Examines efficiency in identifying clusters, showing the impact of average cluster size on computational needs.
+
+---
+
 ## Test Script: `test.py`
 The `test.py` script provides a usage example for the `Dynamic_Similarity_Algorithm` class. It demonstrates how to set up and execute the algorithm with configurable parameters.
 
