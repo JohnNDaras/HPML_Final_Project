@@ -12,7 +12,7 @@ This directory handles data extraction and preprocessing for geospatial datasets
 - Configurable extraction limits for scalability.
 - Outputs in CSV format for seamless integration with the rest of the workflow.
 
-Refer to the [Datasets README](./Datasets/README.md) for more details.
+Refer to the [Datasets README](./Datasets/Similarities/README.md) for more details.
 
 ---
 
